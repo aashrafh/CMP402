@@ -1,8 +1,7 @@
-from os import stat
+from os import curdir, stat
 from problem import HeuristicFunction, Problem, S, A, Solution
 from collections import deque
 from helpers import utils
-from queue import PriorityQueue
 import heapq
 
 
@@ -95,10 +94,67 @@ def UniformCostSearch(problem: Problem[S, A], initial_state: S) -> Solution:
 
 
 def AStarSearch(problem: Problem[S, A], initial_state: S, heuristic: HeuristicFunction) -> Solution:
-    # TODO: ADD YOUR CODE HERE
-    utils.NotImplemented()
+    idx = 0
+    frontier = [(0, (idx, initial_state), [])]
+    explored = set([])
+    cost = {initial_state: 0}
+
+    while frontier:  # while there are more nodes to explore, do:
+        # Choose the shallowest node in the frontier with the least path cost
+        _, state, path = heapq.heappop(frontier)
+        state = state[1]
+
+        if state not in explored:       # If unexplored node
+            # If you reached the goal, then return the path.
+            if problem.is_goal(state):
+                return path
+            # Otherwise, add the current state to the explored set
+            explored.add(state)
+
+            # and loop over all the next states
+            for action in problem.get_actions(state):
+                successor = problem.get_successor(state, action)
+                # Append the next states to the frontier to get explored and ordered prior to it's cumulative path cost
+                new_cost = cost[state] + problem.get_cost(state, action)
+                if successor not in explored or cost[successor] > new_cost:
+                    cost[successor] = new_cost
+                    idx += 1
+                    heapq.heappush(frontier, (new_cost+heuristic(problem, successor),
+                                   (idx, successor), path + [action]))
+
+    # If there is no solution, return None
+    return None
 
 
 def BestFirstSearch(problem: Problem[S, A], initial_state: S, heuristic: HeuristicFunction) -> Solution:
-    # TODO: ADD YOUR CODE HERE
-    utils.NotImplemented()
+    idx = 0
+    frontier = [(0, (idx, initial_state), [])]
+    explored = set([])
+    cost = {initial_state: 0}
+
+    while frontier:  # while there are more nodes to explore, do:
+        # Choose the shallowest node in the frontier with the least path cost
+        _, state, path = heapq.heappop(frontier)
+        state = state[1]
+
+        if state not in explored:       # If unexplored node
+            # If you reached the goal, then return the path.
+            if problem.is_goal(state):
+                return path
+            # Otherwise, add the current state to the explored set
+            explored.add(state)
+
+            # and loop over all the next states
+            for action in problem.get_actions(state):
+                successor = problem.get_successor(state, action)
+                # Append the next states to the frontier to get explored and ordered prior to it's cumulative path cost
+                # new_cost = cost[state] + problem.get_cost(state, action)
+                new_cost = cost[state]
+                if successor not in explored or cost[successor] > new_cost:
+                    cost[successor] = new_cost
+                    idx += 1
+                    heapq.heappush(frontier, (new_cost+heuristic(problem, successor),
+                                   (idx, successor), path + [action]))
+
+    # If there is no solution, return None
+    return None
