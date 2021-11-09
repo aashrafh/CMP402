@@ -94,10 +94,15 @@ def UniformCostSearch(problem: Problem[S, A], initial_state: S) -> Solution:
 
 
 def AStarSearch(problem: Problem[S, A], initial_state: S, heuristic: HeuristicFunction) -> Solution:
+    # A workaround for the heapq's comparator because GraphNode and DungeonNode are not comparable
+    # So, this index guarantees that the heapq doesn't need to compare the nodes.
     idx = 0
+    # A FIFO priority queue to store the next states to explore
+    # initial_state is the only element at the begining with path cost  = 0
+    # Each entry consists of (cumulative_path_cost, (node_string_representation, node), path)
     frontier = [(0, (idx, initial_state), [])]
-    explored = set([])
-    cost = {initial_state: 0}
+    explored = set([])          # An empty set to mark/store the visited nodes
+    cost = {initial_state: 0}   # A map to store the minimum cost so far
 
     while frontier:  # while there are more nodes to explore, do:
         # Choose the shallowest node in the frontier with the least path cost
@@ -127,10 +132,15 @@ def AStarSearch(problem: Problem[S, A], initial_state: S, heuristic: HeuristicFu
 
 
 def BestFirstSearch(problem: Problem[S, A], initial_state: S, heuristic: HeuristicFunction) -> Solution:
+    # A workaround for the heapq's comparator because GraphNode and DungeonNode are not comparable
+    # So, this index guarantees that the heapq doesn't need to compare the nodes.
     idx = 0
+    # A FIFO priority queue to store the next states to explore
+    # initial_state is the only element at the begining with path cost  = 0
+    # Each entry consists of (cumulative_path_cost, (node_string_representation, node), path)
     frontier = [(0, (idx, initial_state), [])]
-    explored = set([])
-    cost = {initial_state: 0}
+    explored = set([])          # An empty set to mark/store the visited nodes
+    cost = {initial_state: 0}   # A map to store the minimum cost so far
 
     while frontier:  # while there are more nodes to explore, do:
         # Choose the shallowest node in the frontier with the least path cost
