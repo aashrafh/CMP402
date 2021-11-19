@@ -12,38 +12,7 @@ import heapq
 def weak_heuristic(problem: DungeonProblem, state: DungeonState):
     return euclidean_distance(state.player, problem.layout.exit)
 
-# TODO: Import any modules and write any functions you want to use
-
-
-def get_next_state(problem: DungeonProblem, state: DungeonState, action: Direction) -> DungeonState:
-    player = state.player + action.to_vector()
-    remaining_coins = state.remaining_coins
-    if player not in problem.layout.walkable:
-        return state
-    if player in remaining_coins:
-        remaining_coins -= {player}
-    return DungeonState(state.layout, player, remaining_coins)
-
-
-def bfs(problem, start, goal_point, dist):
-    frontier = [(start, [])]
-    explored = set()
-
-    while frontier:
-        state, path = frontier.pop(0)
-        if state not in explored:
-            if state.player == goal_point:
-                for i in range(len(path)):
-                    dist[(path[i].player, state.player)] = len(path[i:])
-                break
-
-            explored.add(state)
-
-            for action in problem.get_actions(state):
-                successor = get_next_state(problem, state, action)
-                frontier.append((successor, path + [successor]))
-
-    return dist
+# TODO: Import any modules and write any functions you want to us
 
 
 def strong_heuristic(problem: DungeonProblem, state: DungeonState) -> float:
@@ -53,27 +22,17 @@ def strong_heuristic(problem: DungeonProblem, state: DungeonState) -> float:
     # which is considered the number of is_goal calls during the search
     # NOTE: you can use problem.cache() to get a dictionary in which you can store information that will persist between calls of this function
     # This could be useful if you want to store the results heavy computations that can be cached and used across multiple calls of this function
-    dist = problem.cache()
+    direct_distance = manhattan_distance(state.player, problem.layout.exit)
 
-    h = manhattan_distance(state.player, problem.layout.exit)
+    # The idea is to get an intermediate point between the start and end goal so you can calculate more realistic distance to the goal
+    intermediate_distance = 0
+    for coin in state.remaining_coins:
+        current_distance = manhattan_distance(
+            state.player, coin) + manhattan_distance(coin, problem.layout.exit)
+        if current_distance > intermediate_distance:
+            intermediate_distance = current_distance
 
-    frontier = [state]
-    explored = set()
-    paths = {state: []}
+    if len(state.remaining_coins) >= 1:
+        return intermediate_distance
 
-    while frontier:
-        current_state = frontier.pop(0)
-
-        if current_state.player == problem.layout.exit:
-            return max(h, len(paths[current_state]))
-
-        explored.add(current_state)
-
-        for action in problem.get_actions(current_state):
-            successor = get_next_state(
-                problem, current_state, action)
-            if successor not in explored:
-                frontier.append(successor)
-                paths[successor] = paths[current_state] + [action]
-
-    return h
+    return direct_distance
