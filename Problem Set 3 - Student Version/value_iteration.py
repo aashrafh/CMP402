@@ -31,6 +31,7 @@ class ValueIterationAgent(Agent[S, A]):
                 value += p * (reward + self.discount_factor *
                               self.utilities[str(next_state)])
             values.append((value, action))
+        # Sort the values depeding on the utility. This is a stable sort
         values.sort(key=lambda item: (-item[0], item[1]))
         return values[0]
 
