@@ -7,8 +7,6 @@ from helpers.utils import NotImplemented
 import json
 from collections import defaultdict
 
-import math
-
 # The base class for all Reinforcement Learning Agents required for this problem set
 
 
@@ -50,14 +48,12 @@ class RLAgent(Agent[S, A]):
         else:
             # TODO: return the action with the maximum q-value as calculated by "compute_q" above
             # if more than one action has the maximum q-value, return the one that appears first in the "actions" list
-            best_q = -math.inf
-            best_action = None
-            for action in actions:
-                q = self.compute_q(env, observation, action)
-                if q > best_q:
-                    best_q = q
-                    best_action = action
-            return best_action
+            q_actions = [(self.compute_q(env, observation, action), action)
+                         for action in actions]
+            # Stable sort by the q value
+            q_actions.sort(key=lambda item: -item[0])
+            # Return the action that achieves the maximum q first
+            return q_actions[0][1]
 
 #############################
 #######     SARSA      ######
@@ -98,6 +94,7 @@ class SARSALearningAgent(RLAgent[S, A]):
         next_q = self.Q[str(next_state)][str(next_action)
                                          ] if next_action != None else 0
         target = reward + gamma * next_q
+        # Update the value of Q(state, action) using this transition via the SARSA update rule
         self.Q[str(state)][str(action)] = q + alpha * (target - q)
 
     # Save the Q-table to a json file
@@ -140,14 +137,21 @@ class QLearningAgent(RLAgent[S, A]):
 
     # Given a state, compute and return the utility of the state using the function "compute_q"
     def compute_utility(self, env: Environment[S, A], state: S) -> float:
-        # TODO: Complete this function.
-        NotImplemented()
+        # Compute the maximum q value for the next state
+        return max([self.compute_q(env, state, action) for action in env.actions()])
 
     # Update the value of Q(state, action) using this transition via the Q-Learning update rule
     def update(self, env: Environment[S, A], state: S, action: A, reward: float, next_state: S, done: bool):
         # TODO: Cself.discount_factor * next_qomplete this function to update Q-table using the Q-Learning update rule
         # If done is True, then next_state is a terminal state in which case, we consider the Q-value of next_state to be 0
-        NotImplemented()
+        next_q = self.compute_utility(env, next_state) if not done else 0
+
+        alpha = self.learning_rate
+        gamma = self.discount_factor
+        q = self.Q[str(state)][str(action)]
+        target = reward + gamma * next_q
+        # Update the value of Q(state, action) using this transition via the Q-Learning update rule
+        self.Q[str(state)][str(action)] = q + alpha * (target - q)
 
     # Save the Q-table to a json file
     def save(self, file_path: str):

@@ -37,7 +37,7 @@ class ValueIterationAgent(Agent[S, A]):
             # Append the current action with its value to the list
             values.append((value, action))
         # Sort the values depeding on the utility. This is a stable sort
-        values.sort(key=lambda item: (-item[0], item[1]))
+        values.sort(key=lambda item: -item[0])
         # Return the first action that has the maximum utility
         return values[0]
 
