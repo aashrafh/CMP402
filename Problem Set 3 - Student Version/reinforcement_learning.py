@@ -7,6 +7,8 @@ from helpers.utils import NotImplemented
 import json
 from collections import defaultdict
 
+import math
+
 # The base class for all Reinforcement Learning Agents required for this problem set
 
 
@@ -212,14 +214,13 @@ class ApproximateQLearningAgent(RLAgent[S, A]):
 
     # Given the features of state and an action, compute and return the Q value
     def __compute_q_from_features(self, features: Dict[str, float], action: A) -> float:
-        # TODO: Complete this function
-        # NOTE: Remember to cast the action to string before quering self.weights
-        NotImplemented()
+        # Return the q value approximation using the state's features and the action
+        return sum([self.weights[str(action)][feature_name] * feature_value for feature_name, feature_value in features.items()])
 
     # Given the features of a state, compute and return the utility of the state using the function "__compute_q_from_features"
     def __compute_utility_from_features(self, features: Dict[str, float]) -> float:
-        # TODO: Complete this function
-        NotImplemented()
+        # Return the maximum q value for the features of the current state
+        return max([self.__compute_q_from_features(features, action) for action in self.actions])
 
     def compute_q(self, env: Environment[S, A], state: S, action: A) -> float:
         features = self.feature_extractor.extract_features(env, state)
@@ -229,7 +230,17 @@ class ApproximateQLearningAgent(RLAgent[S, A]):
     def update(self, env: Environment[S, A], state: S, action: A, reward: float, next_state: S, done: bool):
         # TODO: Complete this function to update weights using the Q-Learning update rule
         # If done is True, then next_state is a terminal state in which case, we consider the Q-value of next_state to be 0
-        NotImplemented()
+        next_q = self.__compute_utility_from_features(
+            self.feature_extractor.extract_features(env, next_state)) if not done else 0
+
+        alpha = self.learning_rate
+        gamma = self.discount_factor
+        q = self.compute_q(env, state, action)
+        target = reward + gamma * next_q
+        # Update the value of Q(state, action) using this transition via the Q-Learning Approximation update rule
+        for feature_name, feature_value in self.feature_extractor.extract_features(env, state).items():
+            self.weights[str(action)][feature_name] = self.weights[str(
+                action)][feature_name] + alpha * (target - q) * feature_value
 
     # Save the weights to a json file
     def save(self, file_path: str):
